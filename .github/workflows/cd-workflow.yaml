@@ -1,0 +1,50 @@
+name: CD Pipeline (DOC1)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    name: Deploy to Minikube
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code
+      - uses: actions/checkout@v4
+
+      # Step 2: Start Minikube
+      - name: Start Minikube
+        id: minikube
+        uses: medyagh/setup-minikube@latest
+
+      # Step 3: Check Minikube cluster
+      - name: Check Minikube cluster
+        run: kubectl get pods -A
+
+      # Step 4: Build Docker Image inside Minikube
+      - name: Build Docker image inside Minikube
+        run: |
+          export SHELL=/bin/bash
+          eval $(minikube -p minikube docker-env)
+          docker build -t viatabdoc-app .
+
+      # Step 5: Deploy to Kubernetes using deploy.yaml
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f deploy.yaml
+          kubectl wait --for=condition=Ready pod -l app=viatabdoc-example --timeout=90s
+          kubectl get all
+
+      # Step 6: Test Service URL
+      - name: Test Service URL
+        run: |
+          minikube service viatabdoc-example --url
+
+      # Step 7: Cleanup
+      - name: Cleanup
+        run: |
+          eval $(minikube docker-env -u)
+          minikube delete
