@@ -14,7 +14,6 @@ services:
       - POSTGRES_PASSWORD=postgres
 
   backend:
-    image: "devops-assignment:latest"
     build:
       context: ./   
       dockerfile: Dockerfile

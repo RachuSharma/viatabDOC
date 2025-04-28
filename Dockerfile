@@ -1,10 +1,14 @@
-# Fetch Java
-FROM eclipse-temurin:21-jdk-alpine
-# Expose port 8080
-EXPOSE 8080
-# Set a docker volume if you want
-VOLUME /tmp
-# Add the jar file
-ADD /target/*.jar spring-boot-docker-app1-0.0.1-SNAPSHOT.jar
-# Start the application
-ENTRYPOINT ["java", "-jar", "/spring-boot-docker-app1-0.0.1-SNAPSHOT.jar"]
+# -------- Build stage --------
+    FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
+    WORKDIR /app
+    COPY pom.xml .
+    COPY src ./src
+    RUN mvn clean package -DskipTests
+    
+    # -------- Runtime stage --------
+    FROM eclipse-temurin:21-jdk-alpine
+    WORKDIR /app
+    COPY --from=build /app/target/*-SNAPSHOT.jar app.jar
+    EXPOSE 8080
+    ENTRYPOINT ["java","-jar","app.jar"]
+    
