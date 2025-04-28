@@ -1,9 +1,9 @@
 version: "3.8"
 services:
   db:
-    image: "postgres:14.1-alpine" 
+    image: "postgres:14.1-alpine"
     restart: always
-    container_name: "doc-pgsql-container"  
+    container_name: "doc-pgsql-container"
     ports:
       - "5432:5432"
     volumes:
@@ -16,8 +16,9 @@ services:
   backend:
     image: "devops-assignment:latest"
     build:
-      context: ./
-    container_name: "doc-assignment-container"  
+      context: ./   
+      dockerfile: Dockerfile
+    container_name: "doc-assignment-container"
     ports:
       - "8080:8080"
     depends_on:
@@ -26,7 +27,17 @@ services:
       - spring.datasource.url=jdbc:postgresql://db:5432/doc-db
       - spring.datasource.username=postgres
       - spring.datasource.password=postgres
-      - spring.jba.hibernate.ddl-auto=update
+      - spring.jpa.hibernate.ddl-auto=update  
+
+  frontend:
+    build:
+      context: ./frontend   
+      dockerfile: Dockerfile
+    container_name: "frontend-container"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
 
 volumes:
   db:
